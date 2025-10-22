@@ -1,5 +1,7 @@
 package com.example.oreo.jwt.domain;
 
+import com.example.oreo.user.domain.User;
+import com.example.oreo.user.domain.UserService;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;

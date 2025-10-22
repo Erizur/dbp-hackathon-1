@@ -1,5 +1,8 @@
 package com.example.oreo.config;
 
+import com.example.oreo.jwt.application.JwtAuthorizationFilter;
+import com.example.oreo.user.domain.UserService;
+import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
@@ -22,6 +25,7 @@ import java.util.List;
 @Configuration
 @EnableWebSecurity
 @EnableMethodSecurity(securedEnabled = true)
+@RequiredArgsConstructor
 public class SecurityConfig {
 
     private final UserService userDetailsService;
