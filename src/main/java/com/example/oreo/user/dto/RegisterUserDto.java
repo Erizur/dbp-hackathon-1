@@ -2,7 +2,7 @@ package com.example.oreo.user.dto;
 
 import jakarta.validation.constraints.*;
 
-public record UserCreateRequest(
+public record RegisterUserDto(
         @NotBlank @Pattern(regexp = "^[A-Za-z0-9_.]{3,30}$")
         String username,
 
