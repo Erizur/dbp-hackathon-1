@@ -51,7 +51,7 @@ public class AuthenticationService {
         final String token = jwtService.generateToken(modelMapper.map(user, UserDetails.class));
         return new LoginResponseDto(
                 token,
-                user.getUserId(),
+                user.getId(),
                 user.getEmail(),
                 user.getRole().name()
         );
