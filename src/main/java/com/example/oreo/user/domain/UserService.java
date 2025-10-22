@@ -1,5 +1,4 @@
-package com.example.oreo.user.service;
-
+package com.example.oreo.user.domain;
 
 import com.example.oreo.user.domain.User;
 import com.example.oreo.user.domain.Role;
@@ -85,3 +84,4 @@ public class UserService {
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Usuario no encontrado"));
     }
 }
+
