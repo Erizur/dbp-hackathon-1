@@ -1,17 +1,19 @@
-package com.example.oreo.sales.domain;
-
+package com.example.oreo.sales.domain;  
 import jakarta.persistence.*;
+import lombok.*;
 import java.math.BigDecimal;
 import java.time.Instant;
 
 @Entity
-@Table(indexes = {
-    @Index(columnList = "branch"),
-    @Index(columnList = "soldAt")
-})
+@Table(name = "sales")
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
 public class Sale {
+
     @Id
-    @GeneratedValue(strategy = GenerationType.UUID)
     private String id;
 
     @Column(nullable = false)
@@ -20,7 +22,7 @@ public class Sale {
     @Column(nullable = false)
     private int units;
 
-    @Column(nullable = false)
+    @Column(nullable = false, precision = 10, scale = 2)
     private BigDecimal price;
 
     @Column(nullable = false)
@@ -29,7 +31,6 @@ public class Sale {
     @Column(nullable = false)
     private Instant soldAt;
 
+    @Column(nullable = false)
     private String createdBy;
-
-    // Getters y setters
 }
