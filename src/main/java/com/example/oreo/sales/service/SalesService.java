@@ -1,6 +1,8 @@
 package com.example.oreo.sales.service;
 
 import com.example.oreo.sales.domain.Sale;
+import com.example.oreo.sales.dto.SalesCreateDto;
+import com.example.oreo.sales.dto.SalesResponseDto;
 import com.example.oreo.sales.repository.SaleRepository;
 import com.example.oreo.user.repository.UserRepository;
 import com.example.oreo.sales.dto.SaleCreateRequest;
@@ -116,7 +118,7 @@ public class SalesService {
         sale.setSoldAt(req.soldAt());
         saleRepository.save(sale);
 
-        return new SaleResponse(
+        return new SalesResponseDto(
                 sale.getId(),
                 sale.getSku(),
                 sale.getUnits(),

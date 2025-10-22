@@ -21,13 +21,13 @@ public class SalesController {
     // Crear nueva venta (POST /sales)
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    public SaleResponse create(@RequestBody SaleCreateRequest req) {
+    public SalesResponseDto create(@RequestBody SalesCreateDto req) {
         return salesService.create(req);
     }
 
     // Obtener detalle (GET /sales/{id})
     @GetMapping("/{id}")
-    public SaleResponse get(@PathVariable String id) {
+    public SalesResponseDto get(@PathVariable String id) {
         return salesService.get(id);
     }
 
@@ -46,7 +46,7 @@ public class SalesController {
 
     // Actualizar venta (PUT /sales/{id})
     @PutMapping("/{id}")
-    public SaleResponse update(@PathVariable String id, @RequestBody SaleCreateRequest req) {
+    public SalesResponseDto update(@PathVariable String id, @RequestBody SalesCreateDto req) {
         return salesService.update(id, req);
     }
 
