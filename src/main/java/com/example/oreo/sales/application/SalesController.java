@@ -1,8 +1,14 @@
-package com.example.oreo.sales.controller;
+package com.example.oreo.sales.application;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
+
+import com.example.oreo.sales.dto.ReportEventDto;
+import com.example.oreo.sales.dto.SalesCreateDto;
+import com.example.oreo.sales.dto.SalesResponseDto;
+import com.example.oreo.sales.service.SalesService;
+
 import org.springframework.data.domain.*;
 import java.time.*;
 import java.util.UUID;
@@ -55,7 +61,7 @@ public class SalesController {
     }
 
     // Generar resumen semanal (asíncrono)
-    @PostMapping("/summary/weekly")
+    /*@PostMapping("/summary/weekly")
     @ResponseStatus(HttpStatus.ACCEPTED)
     public SummaryAck summary(@RequestBody SummaryRequest req) {
         var now = Instant.now();
@@ -76,5 +82,5 @@ public class SalesController {
                 "30-60 segundos",
                 now
         );
-    }
+    }*/
 }

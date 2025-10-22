@@ -6,6 +6,8 @@ import com.example.oreo.sales.dto.SalesResponseDto;
 import com.example.oreo.sales.repository.SaleRepository;
 import com.example.oreo.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+
+import org.modelmapper.ModelMapper;
 import org.springframework.data.domain.*;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.Authentication;
@@ -23,6 +25,7 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class SalesService {
 
+    private final ModelMapper modelMapper;
     private final SaleRepository saleRepository;
     private final UserRepository userRepository;
 
@@ -33,31 +36,17 @@ public class SalesService {
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Usuario no encontrado"));
 
         if (user.getRole().name().equals("BRANCH")) {
-            if (!user.getBranch().equalsIgnoreCase(req.branch())) {
+            if (!user.getBranch().equalsIgnoreCase(req.getBranch())) {
                 throw new AccessDeniedException("Solo puedes crear ventas de tu propia sucursal");
             }
         }
 
-        Sale s = new Sale();
-        s.setId(UUID.randomUUID().toString());
-        s.setSku(req.sku());
-        s.setUnits(req.units());
-        s.setPrice(req.price());
-        s.setBranch(req.branch());
-        s.setSoldAt(req.soldAt());
+        Sale s = modelMapper.map(req, Sale.class);
         s.setCreatedBy(user.getUsername());
 
         saleRepository.save(s);
 
-        return new SalesResponseDto(
-                s.getId(),
-                s.getSku(),
-                s.getUnits(),
-                s.getPrice(),
-                s.getBranch(),
-                s.getSoldAt(),
-                s.getCreatedBy()
-        );
+        return modelMapper.map(s, SalesResponseDto.class);
     }
 
     public SalesResponseDto get(String id) {
@@ -66,15 +55,7 @@ public class SalesService {
 
         checkBranchAccess(sale.getBranch());
 
-        return new SalesResponseDto(
-                sale.getId(),
-                sale.getSku(),
-                sale.getUnits(),
-                sale.getPrice(),
-                sale.getBranch(),
-                sale.getSoldAt(),
-                sale.getCreatedBy()
-        );
+        return modelMapper.map(sale, SalesResponseDto.class);
     }
 
     public Page<SalesResponseDto> list(Instant from, Instant to, String branch, Pageable pageable) {
@@ -88,10 +69,7 @@ public class SalesService {
 
         List<Sale> sales = saleRepository.findByDateRangeAndBranch(from, to, branch);
         List<SalesResponseDto> content = sales.stream().map(s ->
-                new SalesResponseDto(
-                        s.getId(), s.getSku(), s.getUnits(), s.getPrice(),
-                        s.getBranch(), s.getSoldAt(), s.getCreatedBy()
-                )).collect(Collectors.toList());
+                modelMapper.map(s, SalesResponseDto.class)).collect(Collectors.toList());
 
         int start = (int) pageable.getOffset();
         int end = Math.min((start + pageable.getPageSize()), content.size());
@@ -105,21 +83,13 @@ public class SalesService {
 
         checkBranchAccess(sale.getBranch());
 
-        sale.setSku(req.sku());
-        sale.setUnits(req.units());
-        sale.setPrice(req.price());
-        sale.setSoldAt(req.soldAt());
+        sale.setSku(req.getSku());
+        sale.setUnits(req.getUnits());
+        sale.setPrice(req.getPrice());
+        sale.setSoldAt(req.getSoldAt());
         saleRepository.save(sale);
 
-        return new SalesResponseDto(
-                sale.getId(),
-                sale.getSku(),
-                sale.getUnits(),
-                sale.getPrice(),
-                sale.getBranch(),
-                sale.getSoldAt(),
-                sale.getCreatedBy()
-        );
+        return modelMapper.map(sale, SalesResponseDto.class);
     }
 
     public void delete(String id) {

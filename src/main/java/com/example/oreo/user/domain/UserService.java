@@ -32,7 +32,6 @@ public class UserService {
         }
 
         User u = new User();
-        u.setId(UUID.randomUUID().toString());
         u.setUsername(username);
         u.setEmail(email);
         u.setPasswordHash(passwordHash);
@@ -50,7 +49,7 @@ public class UserService {
         return userRepository.findAll();
     }
 
-    public User getById(String id) {
+    public User getById(Long id) {
         var currentUser = getCurrentUser();
         var user = userRepository.findById(id)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Usuario no encontrado"));
@@ -61,7 +60,7 @@ public class UserService {
         return user;
     }
 
-    public void delete(String id) {
+    public void delete(Long id) {
         var currentUser = getCurrentUser();
         if (currentUser.getRole() != Role.CENTRAL) {
             throw new AccessDeniedException("Solo CENTRAL puede eliminar usuarios");

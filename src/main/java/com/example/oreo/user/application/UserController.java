@@ -1,4 +1,4 @@
-package com.example.oreo.user.controller;
+package com.example.oreo.user.application;
 
 
 import com.example.oreo.user.repository.UserRepository;

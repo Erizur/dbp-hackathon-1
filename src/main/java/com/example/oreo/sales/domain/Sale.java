@@ -1,6 +1,9 @@
 package com.example.oreo.sales.domain;
 
 import jakarta.persistence.*;
+import lombok.Getter;
+import lombok.Setter;
+
 import java.math.BigDecimal;
 import java.time.Instant;
 
@@ -9,6 +12,8 @@ import java.time.Instant;
     @Index(columnList = "branch"),
     @Index(columnList = "soldAt")
 })
+@Getter
+@Setter
 public class Sale {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
