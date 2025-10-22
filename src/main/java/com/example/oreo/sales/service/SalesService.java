@@ -1,6 +1,8 @@
 package com.example.oreo.sales.service;
 
 import com.example.oreo.sales.domain.Sale;
+import com.example.oreo.sales.dto.SalesCreateDto;
+import com.example.oreo.sales.dto.SalesResponseDto;
 import com.example.oreo.sales.repository.SaleRepository;
 import com.example.oreo.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
@@ -25,7 +27,7 @@ public class SalesService {
     private final UserRepository userRepository;
 
   
-    public SaleResponse create(SaleCreateRequest req) {
+    public SalesResponseDto create(SalesCreateDto req) {
         var auth = getAuth();
         var user = userRepository.findByUsername(auth.getName())
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Usuario no encontrado"));
@@ -47,7 +49,7 @@ public class SalesService {
 
         saleRepository.save(s);
 
-        return new SaleResponse(
+        return new SalesResponseDto(
                 s.getId(),
                 s.getSku(),
                 s.getUnits(),
@@ -58,13 +60,13 @@ public class SalesService {
         );
     }
 
-    public SaleResponse get(String id) {
+    public SalesResponseDto get(String id) {
         var sale = saleRepository.findById(id)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Venta no encontrada"));
 
         checkBranchAccess(sale.getBranch());
 
-        return new SaleResponse(
+        return new SalesResponseDto(
                 sale.getId(),
                 sale.getSku(),
                 sale.getUnits(),
@@ -75,7 +77,7 @@ public class SalesService {
         );
     }
 
-    public Page<SaleResponse> list(Instant from, Instant to, String branch, Pageable pageable) {
+    public Page<SalesResponseDto> list(Instant from, Instant to, String branch, Pageable pageable) {
         var auth = getAuth();
         var user = userRepository.findByUsername(auth.getName())
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED));
@@ -85,19 +87,19 @@ public class SalesService {
         }
 
         List<Sale> sales = saleRepository.findByDateRangeAndBranch(from, to, branch);
-        List<SaleResponse> content = sales.stream().map(s ->
-                new SaleResponse(
+        List<SalesResponseDto> content = sales.stream().map(s ->
+                new SalesResponseDto(
                         s.getId(), s.getSku(), s.getUnits(), s.getPrice(),
                         s.getBranch(), s.getSoldAt(), s.getCreatedBy()
                 )).collect(Collectors.toList());
 
         int start = (int) pageable.getOffset();
         int end = Math.min((start + pageable.getPageSize()), content.size());
-        List<SaleResponse> sub = content.subList(start, end);
+        List<SalesResponseDto> sub = content.subList(start, end);
         return new PageImpl<>(sub, pageable, content.size());
     }
 
-    public SaleResponse update(String id, SaleCreateRequest req) {
+    public SalesResponseDto update(String id, SalesCreateDto req) {
         var sale = saleRepository.findById(id)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Venta no encontrada"));
 
@@ -109,7 +111,7 @@ public class SalesService {
         sale.setSoldAt(req.soldAt());
         saleRepository.save(sale);
 
-        return new SaleResponse(
+        return new SalesResponseDto(
                 sale.getId(),
                 sale.getSku(),
                 sale.getUnits(),

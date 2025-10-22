@@ -4,7 +4,7 @@ import com.example.oreo.authentication.dto.JwtAuthLoginDto;
 import com.example.oreo.authentication.dto.LoginResponseDto;
 import com.example.oreo.jwt.domain.JwtService;
 import com.example.oreo.user.domain.User;
-import com.example.oreo.user.domain.UserService;
+import com.example.oreo.user.service.UserService;
 import com.example.oreo.user.dto.RegisterUserDto;
 import com.example.oreo.user.dto.UserDto;
 import io.jsonwebtoken.io.Decoders;

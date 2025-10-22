@@ -1,19 +1,22 @@
 package com.example.oreo.user.dto;
 
-import jakarta.validation.constraints.*;
+import jakarta.validation.constraints.NotBlank;
+import lombok.Data;
 
-public record RegisterUserDto(
-        @NotBlank @Pattern(regexp = "^[A-Za-z0-9_.]{3,30}$")
-        String username,
+@Data
+public class RegisterUserDto {
 
-        @NotBlank @Email
-        String email,
+    @NotBlank
+    private String email;
 
-        @NotBlank @Size(min = 8, message = "La contraseña debe tener al menos 8 caracteres")
-        String password,
+    @NotBlank
+    private String password;
 
-        @NotBlank
-        String role,
+    @NotBlank
+    private String username;
 
-        String branch
-) {}
+    @NotBlank
+    private String displayName;
+
+    // add displayName
+}

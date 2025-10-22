@@ -2,7 +2,10 @@ package com.example.oreo.sales.dto;
 
 import java.time.Instant;
 
-public record ReportRequestedEvent(
+import lombok.Data;
+
+@Data
+public class ReportEventDto(
         String requestId,
         Instant from,
         Instant to,

@@ -3,7 +3,10 @@ package com.example.oreo.sales.dto;
 import java.math.BigDecimal;
 import java.time.Instant;
 
-public record SaleResponse(
+import lombok.Data;
+
+@Data
+public class SalesResponseDto(
         String id,
         String sku,
         int units,

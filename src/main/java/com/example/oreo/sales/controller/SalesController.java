@@ -19,19 +19,19 @@ public class SalesController {
     // Crear nueva venta
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    public SaleResponse create(@RequestBody SaleCreateRequest req) {
+    public SalesResponseDto create(@RequestBody SalesCreateDto req) {
         return salesService.create(req);
     }
 
     // Obtener una venta por ID
     @GetMapping("/{id}")
-    public SaleResponse get(@PathVariable String id) {
+    public SalesResponseDto get(@PathVariable String id) {
         return salesService.get(id);
     }
 
     // Listar todas las ventas (con filtros)
     @GetMapping
-    public Page<SaleResponse> list(
+    public Page<SalesResponseDto> list(
             @RequestParam Instant from,
             @RequestParam Instant to,
             @RequestParam(required = false) String branch,
@@ -43,7 +43,7 @@ public class SalesController {
 
     // Actualizar una venta
     @PutMapping("/{id}")
-    public SaleResponse update(@PathVariable String id, @RequestBody SaleCreateRequest req) {
+    public SalesResponseDto update(@PathVariable String id, @RequestBody SalesCreateDto req) {
         return salesService.update(id, req);
     }
 
@@ -65,7 +65,7 @@ public class SalesController {
                 .plusDays(1).atStartOfDay().toInstant(ZoneOffset.UTC);
 
         String requestId = "req_" + UUID.randomUUID();
-        events.publishEvent(new ReportRequestedEvent(
+        events.publishEvent(new ReportEventDto(
                 requestId, from, to, req.branch(), req.emailTo(), "system"
         ));
 
