@@ -1,86 +1,44 @@
 package com.example.oreo.user.domain;
 
-import com.example.oreo.user.domain.User;
-import com.example.oreo.user.domain.Role;
+import com.example.oreo.user.dto.RegisterUserDto;
 import com.example.oreo.user.repository.UserRepository;
-
 import lombok.RequiredArgsConstructor;
-import org.springframework.security.access.AccessDeniedException;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
+import org.modelmapper.ModelMapper;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-import org.springframework.web.server.ResponseStatusException;
-import org.springframework.http.HttpStatus;
-
-import java.time.Instant;
-import java.util.List;
-import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
-public class UserService {
+public class UserService implements UserDetailsService {
 
     private final UserRepository userRepository;
+    private final ModelMapper modelMapper;
 
-    public User createUser(String username, String email, String passwordHash, Role role, String branch) {
-        if (userRepository.existsByUsernameOrEmail(username, email)) {
-            throw new ResponseStatusException(HttpStatus.CONFLICT, "El usuario o email ya existen");
-        }
-
-        if (role == Role.BRANCH && (branch == null || branch.isBlank())) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "El campo 'branch' es obligatorio para role BRANCH");
-        }
-
-        User u = new User();
-        u.setUsername(username);
-        u.setEmail(email);
-        u.setPasswordHash(passwordHash);
-        u.setRole(role);
-        u.setBranch(branch);
-        u.setCreatedAt(Instant.now());
-        return userRepository.save(u);
+    @Override
+    public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
+        User user = userRepository.findByUsername(username)
+                .orElseThrow(() -> new UsernameNotFoundException(username));
+        return modelMapper.map(user, UserDetails.class);
     }
 
-    public List<User> listAll() {
-        var currentUser = getCurrentUser();
-        if (currentUser.getRole() != Role.CENTRAL) {
-            throw new AccessDeniedException("Solo CENTRAL puede ver la lista completa de usuarios");
-        }
-        return userRepository.findAll();
+    public User getUserById(Long id) {
+        return userRepository.findById(id).orElseThrow();
     }
 
-    public User getById(Long id) {
-        var currentUser = getCurrentUser();
-        var user = userRepository.findById(id)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Usuario no encontrado"));
+    public User findByEmail (String email) {
+        return userRepository.findByEmail(email).orElseThrow();
+    }
 
-        if (currentUser.getRole() == Role.BRANCH && !currentUser.getId().equals(user.getId())) {
-            throw new AccessDeniedException("No tienes permiso para ver otros usuarios");
-        }
+    public User registerUser (RegisterUserDto dto, PasswordEncoder passwordEncoder) {
+        User user = new User();
+        user.setEmail(dto.getEmail());
+        user.setUsername(dto.getUsername());
+        // user.setPassword(passwordEncoder.encode(dto.getPassword())); // HASH HERE
+        user.setRole(Role.CENTRAL);
+
         return user;
     }
-
-    public void delete(Long id) {
-        var currentUser = getCurrentUser();
-        if (currentUser.getRole() != Role.CENTRAL) {
-            throw new AccessDeniedException("Solo CENTRAL puede eliminar usuarios");
-        }
-
-        if (!userRepository.existsById(id)) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Usuario no encontrado");
-        }
-
-        userRepository.deleteById(id);
-    }
-
-    private User getCurrentUser() {
-        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        if (auth == null || !auth.isAuthenticated()) {
-            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "No autenticado");
-        }
-
-        return userRepository.findByUsername(auth.getName())
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Usuario no encontrado"));
-    }
 }
-

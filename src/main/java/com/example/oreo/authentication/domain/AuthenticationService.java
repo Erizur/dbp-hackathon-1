@@ -4,13 +4,14 @@ import com.example.oreo.authentication.dto.JwtAuthLoginDto;
 import com.example.oreo.authentication.dto.LoginResponseDto;
 import com.example.oreo.jwt.domain.JwtService;
 import com.example.oreo.user.domain.User;
-import com.example.oreo.user.service.UserService;
+import com.example.oreo.user.domain.UserService;
 import com.example.oreo.user.dto.RegisterUserDto;
 import com.example.oreo.user.dto.UserDto;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -27,10 +28,12 @@ public class AuthenticationService {
     private final PasswordEncoder passwordEncoder;
 
     public LoginResponseDto jwtRegister(final RegisterUserDto dto) {
-        final UserDto createdUser = userService.registerUser(dto, passwordEncoder);
+        final User createdUser = userService.registerUser(dto, passwordEncoder);
         // userService.sendVerificationEmail(createdUser);
 
-        final String token = jwtService.generateToken(createdUser);
+        final UserDetails userDetails = userService.loadUserByUsername(createdUser.getUsername());
+
+        final String token = jwtService.generateToken(userDetails);
         return modelMapper.map(createdUser, LoginResponseDto.class);
         /*new LoginResponseDto(token,
                 createdUser.getUserId(),
@@ -45,7 +48,7 @@ public class AuthenticationService {
         if (user.getPassword() == null || !passwordEncoder.matches(dto.getPassword(), user.getPassword()))
             return null;
 
-        final String token = jwtService.generateToken(modelMapper.map(user, UserDto.class));
+        final String token = jwtService.generateToken(modelMapper.map(user, UserDetails.class));
         return new LoginResponseDto(
                 token,
                 user.getUserId(),
