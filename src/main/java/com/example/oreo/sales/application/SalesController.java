@@ -4,24 +4,24 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
-import com.example.oreo.sales.dto.ReportEventDto;
 import com.example.oreo.sales.dto.SalesCreateDto;
 import com.example.oreo.sales.dto.SalesResponseDto;
-import com.example.oreo.sales.dto.SummaryAck;
-import com.example.oreo.sales.dto.SummaryRequest;
+import com.example.oreo.sales.dto.SummaryAckDto;
+import com.example.oreo.sales.dto.SummaryRequestDto;
+import com.example.oreo.sales.event.ReportEvent;
 import com.example.oreo.sales.service.SalesService;
 
 import org.springframework.data.domain.*;
 import java.time.*;
-import java.util.UUID;
-
+import org.modelmapper.ModelMapper;
 import org.springframework.context.ApplicationEventPublisher;
 
 @RestController
 @RequestMapping("/sales")
 @RequiredArgsConstructor
 public class SalesController {
-
+    
+    private final ModelMapper modelMapper;
     private final SalesService salesService;
     private final ApplicationEventPublisher events;
 
@@ -64,26 +64,23 @@ public class SalesController {
     }
 
     // Generar resumen semanal (asíncrono)
-    /*@PostMapping("/summary/weekly")
+    @PostMapping("/summary/weekly")
     @ResponseStatus(HttpStatus.ACCEPTED)
-    public SummaryAck summary(@RequestBody SummaryRequest req) {
+    public SummaryAckDto summary(@RequestBody SummaryRequestDto req) {
         var now = Instant.now();
-        var from = (req.from() == null ? LocalDate.now().minusDays(7) : req.from())
+        var from = (req.getFrom() == null ? LocalDate.now().minusDays(7) : req.getFrom())
                 .atStartOfDay().toInstant(ZoneOffset.UTC);
-        var to = (req.to() == null ? LocalDate.now() : req.to())
+        var to = (req.getTo() == null ? LocalDate.now() : req.getTo())
                 .plusDays(1).atStartOfDay().toInstant(ZoneOffset.UTC);
 
-        String requestId = "req_" + UUID.randomUUID();
-        events.publishEvent(new ReportEventDto(
-                requestId, from, to, req.branch(), req.emailTo(), "system"
-        ));
+        ReportEvent event = new ReportEvent(from, to, req.getBranch(), req.getEmailTo(), "system");
+        events.publishEvent(event);
+        SummaryAckDto ack = modelMapper.map(event, SummaryAckDto.class);
+        ack.setStatus("PROCESANDO");
+        ack.setMessage("Su solicitud de reporte está siendo procesada. Recibirá el resumen en " + req.getEmailTo());
+        ack.setEstimatedTime("30-60 segundos");
+        ack.setRequestedAt(now);
 
-        return new SummaryAck(
-                requestId,
-                "PROCESSING",
-                "Su solicitud de reporte está siendo procesada. Recibirá el resumen en " + req.emailTo(),
-                "30-60 segundos",
-                now
-        );
-    }*/
+        return ack;
+    }
 }
