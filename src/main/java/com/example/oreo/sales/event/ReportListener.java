@@ -15,7 +15,7 @@ public class ReportListener {
 
     @EventListener
     @Async
-    private void handleReportEvent(ReportEvent event) {
+    public void handleReportEvent(ReportEvent event) {
         // mandar correo when i can 
     }
 }
