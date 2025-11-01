@@ -1,5 +1,6 @@
 package com.example.oreo.sales.event;
 
+import java.math.BigDecimal;
 import java.time.Instant;
 
 import org.springframework.context.ApplicationEvent;
@@ -15,18 +16,16 @@ public class ReportEvent extends ApplicationEvent {
         @GeneratedValue(strategy = GenerationType.AUTO)
         private String requestId;
 
-        private final Instant from;
-        private final Instant to;
-        private final String branch;
-        private final String emailTo;
-        private final String requestedBy;
+        private final Integer totalUnits;
+        private final BigDecimal totalRevenue;
+        private final String topSku;
+        private final String topBranch;
 
-        public ReportEvent(Instant from, Instant to, String branch, String emailTo, String requestedBy) {
-                super(from);
-                this.from = from;
-                this.to = to;
-                this.branch = branch;
-                this.emailTo = emailTo;
-                this.requestedBy = requestedBy;
+        public ReportEvent(Integer totalUnits, BigDecimal totalRevenue, String topSku, String topBranch) {
+                super(totalUnits);
+                this.totalUnits = totalUnits;
+                this.totalRevenue = totalRevenue;
+                this.topSku = topSku;
+                this.topBranch = topBranch;
         }
 }

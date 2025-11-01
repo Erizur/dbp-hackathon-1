@@ -35,7 +35,5 @@ public class Sale {
     private Instant soldAt;
 
     private String createdBy;
-
-    // Getters y setters
 }
 

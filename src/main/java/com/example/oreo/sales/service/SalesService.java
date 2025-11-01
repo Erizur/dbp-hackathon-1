@@ -3,6 +3,7 @@ package com.example.oreo.sales.service;
 import com.example.oreo.sales.domain.Sale;
 import com.example.oreo.sales.dto.SalesCreateDto;
 import com.example.oreo.sales.dto.SalesResponseDto;
+import com.example.oreo.sales.event.ReportEvent;
 import com.example.oreo.sales.repository.SaleRepository;
 import com.example.oreo.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
@@ -16,8 +17,10 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 import org.springframework.http.HttpStatus;
 
+import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @Service
@@ -101,6 +104,41 @@ public class SalesService {
         }
 
         saleRepository.deleteById(id);
+    }
+
+    public ReportEvent buildReport(Instant from, Instant to, String branch) {
+        List<Sale> sales = saleRepository.findByDateRangeAndBranch(from, to, branch);
+        if (sales.isEmpty()) {
+            return new ReportEvent(0, BigDecimal.ZERO, null, null);
+        }
+
+        int totalUnits = sales.stream()
+                .mapToInt(Sale::getUnits)
+                .sum();
+
+        BigDecimal totalRevenue = sales.stream()
+                .map(s -> s.getPrice().multiply(BigDecimal.valueOf(s.getUnits())))
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+        String topSku = sales.stream()
+                .collect(Collectors.groupingBy(Sale::getSku,
+                        Collectors.summingInt(Sale::getUnits)))
+                .entrySet().stream()
+                .max(Map.Entry.comparingByValue())
+                .map(Map.Entry::getKey)
+                .orElse(null);
+
+        String topBranch = sales.stream()
+                .collect(Collectors.groupingBy(Sale::getBranch,
+                        Collectors.reducing(BigDecimal.ZERO,
+                                s -> s.getPrice().multiply(BigDecimal.valueOf(s.getUnits())),
+                                BigDecimal::add)))
+                .entrySet().stream()
+                .max(Map.Entry.comparingByValue())
+                .map(Map.Entry::getKey)
+                .orElse(null);
+
+        return new ReportEvent(totalUnits, totalRevenue, topSku, topBranch);
     }
 
     private void checkBranchAccess(String branch) {

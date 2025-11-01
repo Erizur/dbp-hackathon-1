@@ -72,10 +72,10 @@ public class SalesController {
                 .atStartOfDay().toInstant(ZoneOffset.UTC);
         var to = (req.getTo() == null ? LocalDate.now() : req.getTo())
                 .plusDays(1).atStartOfDay().toInstant(ZoneOffset.UTC);
-
-        ReportEvent event = new ReportEvent(from, to, req.getBranch(), req.getEmailTo(), "system");
-        events.publishEvent(event);
-        SummaryAckDto ack = modelMapper.map(event, SummaryAckDto.class);
+        
+        ReportEvent ev = salesService.buildReport(from, to, req.getBranch());
+        events.publishEvent(ev);
+        SummaryAckDto ack = modelMapper.map(ev, SummaryAckDto.class);
         ack.setStatus("PROCESANDO");
         ack.setMessage("Su solicitud de reporte está siendo procesada. Recibirá el resumen en " + req.getEmailTo());
         ack.setEstimatedTime("30-60 segundos");
