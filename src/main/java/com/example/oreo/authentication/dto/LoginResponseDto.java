@@ -8,7 +8,7 @@ import lombok.*;
 @NoArgsConstructor
 public class LoginResponseDto {
     private String token;
-    private Long userId;
+    private Long expiresIn;
     private String email;
     private String role;
 }
