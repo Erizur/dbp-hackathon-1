@@ -74,7 +74,7 @@ public class ReportListener {
                     ", topBranch=" + topBranch +
                     ". Devuelve un resumen ≤120 palabras para enviar por email.")
             ),
-            "max_tokens", 200
+            "max_completion_tokens", 200
         );
 
         HttpHeaders headers = new HttpHeaders();

@@ -27,30 +27,7 @@ import java.util.Optional;
 public class JwtAuthorizationFilter extends OncePerRequestFilter {
     private final JwtService jwtService;
     private final UserService userDetailsService;
-/*
-    @Override
-    protected void doFilterInternal (HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
-    throws ServletException, IOException {
-        String authHeader = request.getHeader("Authorization");
 
-        String jwtToken = resolveToken(request);
-
-        if (StringUtils.hasText(jwtToken)) {
-            final Optional<Claims> maybeClaims = jwtService.extractAllClaims(jwtToken);
-            final Optional<Authentication> maybeAuth =
-                    maybeClaims.flatMap(claims -> jwtService.getAuthentication(jwtToken, claims));
-
-            maybeAuth.ifPresent(SecurityContextHolder.getContext()::setAuthentication);
-        }
-
-        try {
-        filterChain.doFilter(request, response);
-        } finally {
-            SecurityContextHolder.clearContext();
-        }
-    }
-
- */
     @Override
     protected void doFilterInternal (HttpServletRequest request, HttpServletResponse response , FilterChain filterChain )
             throws ServletException, IOException {
