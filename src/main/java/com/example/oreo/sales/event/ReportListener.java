@@ -16,6 +16,10 @@ import org.springframework.web.client.RestTemplate;
 
 import com.example.oreo.authentication.application.MailService;
 import com.example.oreo.sales.domain.Sale;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonMappingException;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 import lombok.RequiredArgsConstructor;
 
@@ -28,7 +32,7 @@ public class ReportListener {
 
     @EventListener
     @Async
-    public void handleReportEvent(ReportEvent event) {
+    public void handleReportEvent(ReportEvent event) throws JsonMappingException, JsonProcessingException {
         String url = System.getenv("GITHUB_MODELS_URL");
         List<Sale> sales = event.getSales();
 
@@ -83,6 +87,16 @@ public class ReportListener {
         ResponseEntity<String> response =
             restTemplate.postForEntity(url, entity, String.class);
             
-        mailService.resultMail(event.getEmail(), response.getBody(), event.getFrom(), event.getTo());
+        if (response.getStatusCode().is2xxSuccessful() && response.getBody() != null) {
+            ObjectMapper mapper = new ObjectMapper();
+            JsonNode root = mapper.readTree(response.getBody());
+            String summary = root
+                .path("choices").get(0)
+                .path("message")
+                .path("content")
+                .asText();
+
+            mailService.resultMail(event.getEmail(), summary, event.getFrom(), event.getTo());
+        }
     }
 }
