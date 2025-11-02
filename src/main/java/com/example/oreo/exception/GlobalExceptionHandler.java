@@ -37,4 +37,16 @@ public class GlobalExceptionHandler {
 
         return new ResponseEntity<>(errorDetails, status);
     }
+
+    @ExceptionHandler(Exception.class)
+    public ResponseEntity<ErrorDetailsDto> handleUnhandled(Exception ex, WebRequest request) {
+        ErrorDetailsDto error = new ErrorDetailsDto(
+            "INTERNAL_SERVER_ERROR",
+            ex.getMessage(),
+            LocalDateTime.now(),
+            request.getDescription(false).replace("uri=", "")
+        );
+        return new ResponseEntity<>(error, HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+
 }

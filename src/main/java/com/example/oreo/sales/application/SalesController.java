@@ -78,7 +78,7 @@ public class SalesController {
         ReportEvent ev = salesService.buildReport(req.getEmailTo(), from, to, req.getBranch());
         events.publishEvent(ev);
         SummaryAckDto ack = modelMapper.map(ev, SummaryAckDto.class);
-        ack.setStatus("PROCESANDO");
+        ack.setStatus("PROCESSING");
         ack.setMessage("Su solicitud de reporte está siendo procesada. Recibirá el resumen en " + req.getEmailTo());
         ack.setEstimatedTime("30-60 segundos");
         ack.setRequestedAt(now);

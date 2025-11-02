@@ -1,5 +1,6 @@
 package com.example.oreo.user.domain;
 
+import com.example.oreo.exception.UsernameException;
 import com.example.oreo.user.dto.RegisterUserDto;
 import com.example.oreo.user.dto.UserDto;
 import com.example.oreo.user.repository.UserRepository;
@@ -39,11 +40,15 @@ public class UserService implements UserDetailsService {
     }
 
     public UserDto registerUser (RegisterUserDto dto, PasswordEncoder passwordEncoder) {
+        if (userRepository.existsByUsername(dto.getUsername()))
+            throw new UsernameException("Username already exists");
+
         User user = new User();
         user.setEmail(dto.getEmail());
         user.setUsername(dto.getUsername());
         user.setPassword(passwordEncoder.encode(dto.getPassword())); // HASH HERE
         user.setRole(dto.getRole());
+        user.setBranch(dto.getBranch());
 
         return modelMapper.map( userRepository.saveAndFlush(user), UserDto.class); // change to return user
     }

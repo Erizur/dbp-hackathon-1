@@ -1,5 +1,6 @@
 package com.example.oreo.sales.service;
 
+import com.example.oreo.exception.ForbiddenException;
 import com.example.oreo.exception.SalesEmptyException;
 import com.example.oreo.sales.domain.Sale;
 import com.example.oreo.sales.dto.SalesCreateDto;
@@ -31,7 +32,6 @@ public class SalesService {
     private final SaleRepository saleRepository;
     private final UserRepository userRepository;
 
-  
     public SalesResponseDto create(SalesCreateDto req) {
         var auth = getAuth();
         var user = userRepository.findByUsername(auth.getName())
@@ -39,7 +39,7 @@ public class SalesService {
 
         if (user.getRole().name().equals("BRANCH")) {
             if (!user.getBranch().equalsIgnoreCase(req.getBranch())) {
-                throw new AccessDeniedException("Solo puedes crear ventas de tu propia sucursal");
+                throw new ForbiddenException("Solo puedes crear ventas de tu propia sucursal");
             }
         }
 
@@ -69,14 +69,11 @@ public class SalesService {
             branch = user.getBranch();
         }
 
-        List<Sale> sales = saleRepository.findByDateRangeAndBranch(from, to, branch);
-        List<SalesResponseDto> content = sales.stream().map(s ->
-                modelMapper.map(s, SalesResponseDto.class)).collect(Collectors.toList());
+        Page<Sale> page = (branch == null || branch.isBlank())
+                ? saleRepository.findAllBySoldAtBetween(from, to, pageable)
+                : saleRepository.findAllByBranchIgnoreCaseAndSoldAtBetween(branch, from, to, pageable);
 
-        int start = (int) pageable.getOffset();
-        int end = Math.min((start + pageable.getPageSize()), content.size());
-        List<SalesResponseDto> sub = content.subList(start, end);
-        return new PageImpl<>(sub, pageable, content.size());
+        return page.map(s -> modelMapper.map(s, SalesResponseDto.class));
     }
 
     public SalesResponseDto update(String id, SalesCreateDto req) {
@@ -107,8 +104,23 @@ public class SalesService {
     }
 
     public ReportEvent buildReport(String email, Date from, Date to, String branch) {
-        List<Sale> sales = saleRepository.findByDateRangeAndBranch(from.toInstant(), to.toInstant(), branch);
-        if (sales.isEmpty()) throw new SalesEmptyException("No hay sales en el branch en el rango definido.");
+        List<Sale> sales;
+
+        if (branch == null || branch.isBlank()) {
+            sales = saleRepository
+                    .findAllBySoldAtBetween(from.toInstant(), to.toInstant(), Pageable.unpaged())
+                    .getContent();
+        } else {
+            sales = saleRepository
+                    .findAllByBranchIgnoreCaseAndSoldAtBetween(branch, from.toInstant(), to.toInstant(),
+                            Pageable.unpaged())
+                    .getContent();
+        }
+
+        if (sales.isEmpty()) {
+            throw new SalesEmptyException("No hay sales en el branch en el rango definido.");
+        }
+
         return new ReportEvent(email, sales, from, to);
     }
 

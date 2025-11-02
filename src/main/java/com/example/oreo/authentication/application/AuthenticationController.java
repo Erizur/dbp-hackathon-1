@@ -23,8 +23,6 @@ import java.net.URI;
 @RequiredArgsConstructor
 public class AuthenticationController {
     private final AuthenticationService authenticationService;
-    private final UserService userService;
-    private final ModelMapper modelMapper;
 
     @PostMapping("/register")
     public ResponseEntity<UserDto> register(@Valid @RequestBody final RegisterUserDto dto) {
