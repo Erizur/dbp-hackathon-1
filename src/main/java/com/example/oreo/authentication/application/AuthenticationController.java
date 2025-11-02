@@ -5,6 +5,8 @@ import com.example.oreo.authentication.dto.JwtAuthLoginDto;
 import com.example.oreo.authentication.dto.LoginResponseDto;
 import com.example.oreo.user.domain.UserService;
 import com.example.oreo.user.dto.RegisterUserDto;
+import com.example.oreo.user.dto.UserDto;
+
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
@@ -25,8 +27,8 @@ public class AuthenticationController {
     private final ModelMapper modelMapper;
 
     @PostMapping("/register")
-    public ResponseEntity<LoginResponseDto> register(@Valid @RequestBody final RegisterUserDto dto) {
-        LoginResponseDto temp = authenticationService.jwtRegister(dto);
+    public ResponseEntity<UserDto> register(@Valid @RequestBody final RegisterUserDto dto) {
+        UserDto temp = authenticationService.jwtRegister(dto);
         return ResponseEntity.created(URI.create("/auth/user" + temp.getUserId())).body(temp);
     }
 

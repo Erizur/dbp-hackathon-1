@@ -22,7 +22,12 @@ public class UserService implements UserDetailsService {
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
         User user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new UsernameNotFoundException(username));
-        return modelMapper.map(user, UserDetails.class);
+
+        return org.springframework.security.core.userdetails.User.builder()
+                .username(user.getUsername())
+                .password(user.getPassword()) // must match encoded password in DB
+                .roles(user.getRole().toString())         // ensure role is a String, e.g. "USER"
+                .build();
     }
 
     public User findByUsername (String username) {
@@ -31,10 +36,6 @@ public class UserService implements UserDetailsService {
 
     public User getUserById(Long id) {
         return userRepository.findById(id).orElseThrow();
-    }
-
-    public User findByEmail (String email) {
-        return userRepository.findByEmail(email).orElseThrow();
     }
 
     public UserDto registerUser (RegisterUserDto dto, PasswordEncoder passwordEncoder) {
