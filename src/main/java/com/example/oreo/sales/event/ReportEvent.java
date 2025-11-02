@@ -1,13 +1,14 @@
 package com.example.oreo.sales.event;
+import com.example.oreo.sales.domain.Sale;
 
-import java.math.BigDecimal;
-import java.time.Instant;
-
+import java.util.Date;
+import java.util.List;
 import org.springframework.context.ApplicationEvent;
 
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.validation.constraints.Email;
 import lombok.Getter;
 
 @Getter
@@ -16,16 +17,18 @@ public class ReportEvent extends ApplicationEvent {
         @GeneratedValue(strategy = GenerationType.AUTO)
         private String requestId;
 
-        private final Integer totalUnits;
-        private final BigDecimal totalRevenue;
-        private final String topSku;
-        private final String topBranch;
+        private final Date from;
+        private final Date to;
+        private final List<Sale> sales;
 
-        public ReportEvent(Integer totalUnits, BigDecimal totalRevenue, String topSku, String topBranch) {
-                super(totalUnits);
-                this.totalUnits = totalUnits;
-                this.totalRevenue = totalRevenue;
-                this.topSku = topSku;
-                this.topBranch = topBranch;
+        @Email
+        private final String email;
+
+        public ReportEvent(String email, List<Sale> sales, Date from, Date to) {
+                super(sales);
+                this.sales = sales;
+                this.email = email;
+                this.from = from;
+                this.to = to;
         }
 }

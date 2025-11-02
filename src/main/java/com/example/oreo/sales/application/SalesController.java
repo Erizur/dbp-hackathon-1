@@ -13,6 +13,8 @@ import com.example.oreo.sales.service.SalesService;
 
 import org.springframework.data.domain.*;
 import java.time.*;
+import java.util.Date;
+
 import org.modelmapper.ModelMapper;
 import org.springframework.context.ApplicationEventPublisher;
 
@@ -68,12 +70,12 @@ public class SalesController {
     @ResponseStatus(HttpStatus.ACCEPTED)
     public SummaryAckDto summary(@RequestBody SummaryRequestDto req) {
         var now = Instant.now();
-        var from = (req.getFrom() == null ? LocalDate.now().minusDays(7) : req.getFrom())
-                .atStartOfDay().toInstant(ZoneOffset.UTC);
-        var to = (req.getTo() == null ? LocalDate.now() : req.getTo())
-                .plusDays(1).atStartOfDay().toInstant(ZoneOffset.UTC);
+        Date from = Date.from((req.getFrom() == null ? LocalDate.now().minusDays(7) : req.getFrom().get())
+                .atStartOfDay().toInstant(ZoneOffset.UTC));
+        Date to = Date.from((req.getTo() == null ? LocalDate.now() : req.getTo().get())
+                .plusDays(1).atStartOfDay().toInstant(ZoneOffset.UTC));
         
-        ReportEvent ev = salesService.buildReport(from, to, req.getBranch());
+        ReportEvent ev = salesService.buildReport(req.getEmailTo(), from, to, req.getBranch());
         events.publishEvent(ev);
         SummaryAckDto ack = modelMapper.map(ev, SummaryAckDto.class);
         ack.setStatus("PROCESANDO");

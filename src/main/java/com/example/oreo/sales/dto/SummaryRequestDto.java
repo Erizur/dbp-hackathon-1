@@ -2,17 +2,15 @@ package com.example.oreo.sales.dto;
 
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotEmpty;
-import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 
 import java.time.LocalDate;
+import java.util.Optional;
 
 @Data
 public class SummaryRequestDto {
-        @NotNull
-        private LocalDate from;
-        @NotNull
-        private LocalDate to;
+        private Optional<LocalDate> from;
+        private Optional<LocalDate> to;
         @NotEmpty
         private String branch;
         @Email 

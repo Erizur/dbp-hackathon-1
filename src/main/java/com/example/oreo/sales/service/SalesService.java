@@ -1,5 +1,6 @@
 package com.example.oreo.sales.service;
 
+import com.example.oreo.exception.SalesEmptyException;
 import com.example.oreo.sales.domain.Sale;
 import com.example.oreo.sales.dto.SalesCreateDto;
 import com.example.oreo.sales.dto.SalesResponseDto;
@@ -17,10 +18,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 import org.springframework.http.HttpStatus;
 
-import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.List;
-import java.util.Map;
+import java.util.Date;
 import java.util.stream.Collectors;
 
 @Service
@@ -106,39 +106,10 @@ public class SalesService {
         saleRepository.deleteById(id);
     }
 
-    public ReportEvent buildReport(Instant from, Instant to, String branch) {
-        List<Sale> sales = saleRepository.findByDateRangeAndBranch(from, to, branch);
-        if (sales.isEmpty()) {
-            return new ReportEvent(0, BigDecimal.ZERO, null, null);
-        }
-
-        int totalUnits = sales.stream()
-                .mapToInt(Sale::getUnits)
-                .sum();
-
-        BigDecimal totalRevenue = sales.stream()
-                .map(s -> s.getPrice().multiply(BigDecimal.valueOf(s.getUnits())))
-                .reduce(BigDecimal.ZERO, BigDecimal::add);
-
-        String topSku = sales.stream()
-                .collect(Collectors.groupingBy(Sale::getSku,
-                        Collectors.summingInt(Sale::getUnits)))
-                .entrySet().stream()
-                .max(Map.Entry.comparingByValue())
-                .map(Map.Entry::getKey)
-                .orElse(null);
-
-        String topBranch = sales.stream()
-                .collect(Collectors.groupingBy(Sale::getBranch,
-                        Collectors.reducing(BigDecimal.ZERO,
-                                s -> s.getPrice().multiply(BigDecimal.valueOf(s.getUnits())),
-                                BigDecimal::add)))
-                .entrySet().stream()
-                .max(Map.Entry.comparingByValue())
-                .map(Map.Entry::getKey)
-                .orElse(null);
-
-        return new ReportEvent(totalUnits, totalRevenue, topSku, topBranch);
+    public ReportEvent buildReport(String email, Date from, Date to, String branch) {
+        List<Sale> sales = saleRepository.findByDateRangeAndBranch(from.toInstant(), to.toInstant(), branch);
+        if (sales.isEmpty()) throw new SalesEmptyException("No hay sales en el branch en el rango definido.");
+        return new ReportEvent(email, sales, from, to);
     }
 
     private void checkBranchAccess(String branch) {
@@ -154,15 +125,5 @@ public class SalesService {
 
     private Authentication getAuth() {
         return SecurityContextHolder.getContext().getAuthentication();
-    }
-
-    public void ensureEmailPresent(String email) {
-        if (email == null || !email.contains("@")) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "emailTo es obligatorio y debe ser válido");
-        }
-    }
-
-    public void ensureBranchPermission(String branch) {
-        checkBranchAccess(branch);
     }
 }

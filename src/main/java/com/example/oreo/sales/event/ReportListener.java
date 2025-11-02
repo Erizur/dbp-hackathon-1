@@ -1,10 +1,10 @@
 package com.example.oreo.sales.event;
 
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
-import org.springframework.boot.web.client.RestTemplateBuilder;
-import org.springframework.context.annotation.Bean;
 import org.springframework.context.event.EventListener;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
@@ -14,7 +14,8 @@ import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
 
-import com.example.oreo.mail.EmailService;
+import com.example.oreo.authentication.application.MailService;
+import com.example.oreo.sales.domain.Sale;
 
 import lombok.RequiredArgsConstructor;
 
@@ -23,12 +24,39 @@ import lombok.RequiredArgsConstructor;
 public class ReportListener {
 
     private final RestTemplate restTemplate;
-    private final EmailService emailService;
+    private final MailService mailService;
 
     @EventListener
     @Async
     public void handleReportEvent(ReportEvent event) {
         String url = System.getenv("GITHUB_MODELS_URL");
+        List<Sale> sales = event.getSales();
+
+        int totalUnits = sales.stream()
+                .mapToInt(Sale::getUnits)
+                .sum();
+
+        BigDecimal totalRevenue = sales.stream()
+                .map(s -> s.getPrice().multiply(BigDecimal.valueOf(s.getUnits())))
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+        String topSku = sales.stream()
+                .collect(Collectors.groupingBy(Sale::getSku,
+                        Collectors.summingInt(Sale::getUnits)))
+                .entrySet().stream()
+                .max(Map.Entry.comparingByValue())
+                .map(Map.Entry::getKey)
+                .orElse(null);
+
+        String topBranch = sales.stream()
+                .collect(Collectors.groupingBy(Sale::getBranch,
+                        Collectors.reducing(BigDecimal.ZERO,
+                                s -> s.getPrice().multiply(BigDecimal.valueOf(s.getUnits())),
+                                BigDecimal::add)))
+                .entrySet().stream()
+                .max(Map.Entry.comparingByValue())
+                .map(Map.Entry::getKey)
+                .orElse(null);
 
         Map<String, Object> body = Map.of(
             "model", System.getenv("MODEL_ID"),
@@ -36,10 +64,10 @@ public class ReportListener {
                 Map.of("role", "system", "content",
                     "Eres un analista que escribe resúmenes breves y claros para emails corporativos."),
                 Map.of("role", "user", "content",
-                    "Con estos datos: totalUnits=" + event.getTotalUnits() +
-                    ", totalRevenue=" + event.getTotalRevenue() +
-                    ", topSku=" + event.getTopSku() +
-                    ", topBranch=" + event.getTopBranch() +
+                    "Con estos datos: totalUnits=" + totalUnits +
+                    ", totalRevenue=" + totalRevenue +
+                    ", topSku=" + topSku +
+                    ", topBranch=" + topBranch +
                     ". Devuelve un resumen ≤120 palabras para enviar por email.")
             ),
             "max_tokens", 200
@@ -54,7 +82,7 @@ public class ReportListener {
 
         ResponseEntity<String> response =
             restTemplate.postForEntity(url, entity, String.class);
-
-        response.getBody();
+            
+        mailService.resultMail(event.getEmail(), response.getBody(), event.getFrom(), event.getTo());
     }
 }

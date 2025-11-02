@@ -14,6 +14,6 @@ public class UserRegisteredEventListener {
     @Async
     @EventListener
     public void handleUserRegistered(UserRegisteredEvent event) {
-        mailService.welcomeMail(event.getEmail(), event.getUsername());
+        // nada, se equivocaron aqui XDDD
     }
 }

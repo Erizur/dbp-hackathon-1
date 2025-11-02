@@ -1,6 +1,9 @@
 package com.example.oreo.authentication.application;
 
 import lombok.RequiredArgsConstructor;
+
+import java.util.Date;
+
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.scheduling.annotation.Async;
@@ -12,12 +15,11 @@ public class MailService {
     private final JavaMailSender mailSender;
 
     @Async
-    public void welcomeMail(String to, String username ) {
+    public void resultMail(String to, String summaryMessage, Date dateFrom, Date dateTo) {
         SimpleMailMessage message = new SimpleMailMessage();
         message.setTo(to);
-        message.setSubject("bienvenid@ a artpond");
-        message.setText("estamos felices de que seas parte de artpond, " + username);
+        message.setSubject("Reporte Semanal Oreo - " + dateFrom.toString() + " a " + dateTo.toString());
+        message.setText(summaryMessage);
         mailSender.send(message);
-        System.out.println("mail to " + username);
     }
 }
