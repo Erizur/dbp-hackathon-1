@@ -41,7 +41,7 @@ public class AuthenticationService {
     }
 
     public LoginResponseDto jwtLogin(final JwtAuthLoginDto dto) {
-        final User user = userService.findByEmail(dto.getEmail());
+        final User user = userService.findByUsername(dto.getUsername());
 
         if (user.getPassword() == null || !passwordEncoder.matches(dto.getPassword(), user.getPassword()))
             return null;

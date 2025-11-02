@@ -25,6 +25,10 @@ public class UserService implements UserDetailsService {
         return modelMapper.map(user, UserDetails.class);
     }
 
+    public User findByUsername (String username) {
+        return userRepository.findByUsername(username).orElseThrow(() -> new UsernameNotFoundException(username));
+    }
+
     public User getUserById(Long id) {
         return userRepository.findById(id).orElseThrow();
     }
