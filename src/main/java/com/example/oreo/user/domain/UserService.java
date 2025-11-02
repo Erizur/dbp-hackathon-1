@@ -1,6 +1,7 @@
 package com.example.oreo.user.domain;
 
 import com.example.oreo.user.dto.RegisterUserDto;
+import com.example.oreo.user.dto.UserDto;
 import com.example.oreo.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
@@ -32,13 +33,13 @@ public class UserService implements UserDetailsService {
         return userRepository.findByEmail(email).orElseThrow();
     }
 
-    public User registerUser (RegisterUserDto dto, PasswordEncoder passwordEncoder) {
+    public UserDto registerUser (RegisterUserDto dto, PasswordEncoder passwordEncoder) {
         User user = new User();
         user.setEmail(dto.getEmail());
         user.setUsername(dto.getUsername());
-        // user.setPassword(passwordEncoder.encode(dto.getPassword())); // HASH HERE
-        user.setRole(Role.CENTRAL);
+        user.setPassword(passwordEncoder.encode(dto.getPassword())); // HASH HERE
+        user.setRole(dto.getRole());
 
-        return user;
+        return modelMapper.map( userRepository.saveAndFlush(user), UserDto.class); // change to return user
     }
 }

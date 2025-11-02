@@ -31,19 +31,13 @@ public class AuthenticationService {
     private final ApplicationEventPublisher publisher;
 
     public LoginResponseDto jwtRegister(final RegisterUserDto dto) {
-        final User createdUser = userService.registerUser(dto, passwordEncoder);
-        // userService.sendVerificationEmail(createdUser);
+        final UserDto createdUser = userService.registerUser(dto, passwordEncoder);
 
         final UserDetails userDetails = userService.loadUserByUsername(createdUser.getUsername());
 
         final String token = jwtService.generateToken(userDetails);
         publisher.publishEvent(new UserRegisteredEvent(createdUser.getEmail(), createdUser.getUsername()));
         return modelMapper.map(createdUser, LoginResponseDto.class);
-        /*new LoginResponseDto(token,
-                createdUser.getUserId(),
-                createdUser.getEmail(),
-                createdUser.getRole().name()
-        );*/
     }
 
     public LoginResponseDto jwtLogin(final JwtAuthLoginDto dto) {
